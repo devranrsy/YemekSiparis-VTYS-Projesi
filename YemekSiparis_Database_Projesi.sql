@@ -94,3 +94,118 @@ DROP TABLE Kullaniciler;
 
 
 
+---------------------------------------------------------
+-- 1. 20 KULLANICI EKLENMESÝ (3 Bizden + 17 Mahalleli)
+---------------------------------------------------------
+INSERT INTO Kullanicilar (Kullanici_AdSoyad, Telefon, Email, Sifre, Rol)
+VALUES 
+('Beyza','05011406047','beyzadevran@gmail.com','1451','ADMIN'),
+('Devran', '05011406147', 'devran.rsy.47@gmail.com', '1451', 'ADMIN'),
+('Mami', '05551110002', 'mami@mail.com', '123', 'MUSTERI'),
+('Talha', '05551110003', 'talha@kurye.com', '123', 'KURYE'),
+('Çocuk Adam', '05052220004', 'cocukadam@mail.com', '123', 'MUSTERI'),
+('Ayse Demir', '05052220005', 'ayse@mail.com', '123', 'MUSTERI'),
+('Fatma Kaya', '05052220006', 'fatma@mail.com', '123', 'MUSTERI'),
+('Ali Can', '05052220007', 'ali@mail.com', '123', 'MUSTERI'),
+('Mehmet Oz', '05052220008', 'mehmet@mail.com', '123', 'MUSTERI'),
+('Zeynep Celik', '05052220009', 'zeynep@mail.com', '123', 'MUSTERI'),
+('Burak Yildiz', '05052220010', 'burak@mail.com', '123', 'MUSTERI'),
+('Cemre Sahin', '05052220011', 'cemre@mail.com', '123', 'MUSTERI'),
+('Omer Faruk', '05052220012', 'omer@mail.com', '123', 'MUSTERI'),
+('Elif Kose', '05052220013', 'elif@mail.com', '123', 'MUSTERI'),
+('Hasan Tekin', '05052220014', 'hasan@mail.com', '123', 'MUSTERI'),
+('Murat Efe', '05052220015', 'murat@mail.com', '123', 'MUSTERI'),
+('Buse Aydin', '05052220016', 'buse@mail.com', '123', 'MUSTERI'),
+('Gokhan Guler', '05052220017', 'gokhan@mail.com', '123', 'MUSTERI'),
+('Seda Yilmaz', '05052220018', 'seda@mail.com', '123', 'MUSTERI'),
+('Kemal Sunal', '05052220019', 'kemal@mail.com', '123', 'MUSTERI'),
+('Tarik Akan', '05052220020', 'tarik@mail.com', '123', 'MUSTERI');
+
+
+INSERT INTO Restoranlar (RestoranAdi, Adres, Puan)
+VALUES 
+('Etsan Kebap Salonu', 'Kemalpaþa Mah. Namýk Kemal Cad.', 4.6),
+('Dürümcü Metin Usta', 'Kemalpaþa Mah. Meydan', 4.8),
+('Tadým Pide & Lahmacun', 'Güneþli Meydan', 4.5),
+('Baðcýlar Burger', 'Çiftlik Duraðý', 4.2),
+('Kardeþler Çorba & Ev Yemekleri', 'Yürüyüþ Yolu', 4.9);
+
+-- 1: Etsan Kebap
+INSERT INTO Yemekler (Restoran_ID, YemekAdi, Fiyat) VALUES 
+(1, 'Adana Porsiyon', 220), (1, 'Urfa Porsiyon', 220), (1, 'Kuþbaþý Þiþ', 250), (1, 'Ciðer Þiþ', 200), (1, 'Tavuk Þiþ', 180), 
+(1, 'Ali Nazik', 260), (1, 'Beyti Sarma', 280), (1, 'Gavurdaðý Salata', 90), (1, 'Künefe', 120), (1, 'Ayran', 30);
+
+-- 2: Dürümcü Metin Usta
+INSERT INTO Yemekler (Restoran_ID, YemekAdi, Fiyat) VALUES 
+(2, 'Et Döner Dürüm', 180), (2, 'Tavuk Döner Dürüm', 120), (2, 'Zurna Döner', 150), (2, 'Tombik Et Döner', 190), (2, 'Tombik Tavuk', 130), 
+(2, 'Porsiyon Döner', 250), (2, 'Ýskender', 280), (2, 'Patates Kýzartmasý', 60), (2, 'Kutu Kola', 40), (2, 'Þalgam', 30);
+
+-- 3: Tadým Pide
+INSERT INTO Yemekler (Restoran_ID, YemekAdi, Fiyat) VALUES 
+(3, 'Kýymalý Pide', 150), (3, 'Kuþbaþýlý Pide', 180), (3, 'Kaþarlý Pide', 140), (3, 'Sucuklu Pide', 160), (3, 'Karýþýk Pide', 190), 
+(3, 'Lahmacun', 60), (3, 'Cevizli Lahmacun', 75), (3, 'Ezogelin Çorbasý', 70), (3, 'Sütlaç', 80), (3, 'Meyve Suyu', 35);
+
+-- 4: Baðcýlar Burger
+INSERT INTO Yemekler (Restoran_ID, YemekAdi, Fiyat) VALUES 
+(4, 'Klasik Burger', 180), (4, 'Cheeseburger', 200), (4, 'Mushroom Burger', 220), (4, 'Tavuk Burger', 150), (4, 'Double Burger', 280), 
+(4, 'Soðan Halkasý', 60), (4, 'Nugget (6lý)', 70), (4, 'Çýtýr Tavuk', 90), (4, 'Büyük Boy Patates', 75), (4, 'Limonata', 45);
+
+-- 5: Kardeþler Çorba
+INSERT INTO Yemekler (Restoran_ID, YemekAdi, Fiyat) VALUES 
+(5, 'Kelle Paça', 140), (5, 'Mercimek Çorbasý', 70), (5, 'Ýþkembe', 130), (5, 'Tavuk Suyu', 80), (5, 'Kuru Fasulye', 120), 
+(5, 'Pilav', 60), (5, 'Kavurma', 250), (5, 'Musakka', 160), (5, 'Cacýk', 50), (5, 'Kemalpaþa Tatlýsý', 70);
+
+
+--100 SÝPARÝÞ ve DETAYLARININ OLUÞTURULMASI 
+
+DECLARE @Sayac INT = 1;
+DECLARE @RastgeleMusteri INT;
+DECLARE @RastgeleRestoran INT;
+DECLARE @RastgeleYemek INT;
+DECLARE @RastgeleAdet INT;
+DECLARE @BirimFiyati DECIMAL(10,2);
+DECLARE @YeniSiparisID INT;
+
+WHILE @Sayac <= 100
+BEGIN
+    -- 1 ile 20 arasý rastgele müþteri ve 1 ile 5 arasý rastgele restoran seçimi
+    SET @RastgeleMusteri = (ABS(CHECKSUM(NEWID())) % 21) + 1;
+    SET @RastgeleRestoran = (ABS(CHECKSUM(NEWID())) % 5) + 1;
+
+    -- Ana Sipariþi Ekle (Tutar þimdilik 0, detaylar eklenince hesaplanmalý ama test için rastgele atýyoruz)
+    INSERT INTO Siparisler (Kullanici_ID, Restoran_ID, SiparisTutari, Durum)
+    VALUES (@RastgeleMusteri, @RastgeleRestoran, 0, 'Teslim Edildi');
+    
+    SET @YeniSiparisID = SCOPE_IDENTITY(); -- Eklenen son sipariþin ID'sini al
+
+    -- O restorana ait rastgele 1 yemek seç
+    SELECT TOP 1 @RastgeleYemek = Yemek_ID, @BirimFiyati = Fiyat 
+    FROM Yemekler WHERE Restoran_ID = @RastgeleRestoran ORDER BY NEWID();
+    
+    -- Rastgele 1 ile 3 arasý adet belirle
+    SET @RastgeleAdet = (ABS(CHECKSUM(NEWID())) % 3) + 1;
+
+    -- Sipariþ detayýný ekle
+    INSERT INTO Siparis_Detaylari (Siparis_ID, Yemek_ID, Adet, BirimFiyat)
+    VALUES (@YeniSiparisID, @RastgeleYemek, @RastgeleAdet, @BirimFiyati);
+
+    -- Ana sipariþin toplam tutarýný güncelle
+    UPDATE Siparisler 
+    SET SiparisTutari = (@RastgeleAdet * @BirimFiyati)
+    WHERE Siparis_ID = @YeniSiparisID;
+
+    SET @Sayac = @Sayac + 1;
+END;
+
+---------------------------------------------------------
+-- 5. ASKIDA YEMEK HAVUZU ÝÞLEMLERÝ 
+---------------------------------------------------------
+INSERT INTO Askida_Havuz (Bagisci_ID, Bagis_Turu, Bakiye_Miktari, Yemek_ID, Adet, Kalan_Miktar, Durum)
+VALUES 
+(1, 'BAKIYE', 500.00, NULL, 0, 500.00, 'AKTIF'),
+(2, 'URUN', 0, 10, 5, 5.00, 'AKTIF'), -- 5 adet Ayran askýya
+(3, 'BAKIYE', 250.00, NULL, 0, 0.00, 'TUKENDI'),
+(4, 'URUN', 0, 26, 2, 2.00, 'AKTIF'), -- 2 adet Lahmacun askýya
+(5, 'BAKIYE', 1000.00, NULL, 0, 850.00, 'AKTIF');
+
+
