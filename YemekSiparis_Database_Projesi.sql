@@ -95,7 +95,7 @@ DROP TABLE Kullaniciler;
 
 
 ---------------------------------------------------------
--- 1. 20 KULLANICI EKLENMESÝ (3 Bizden + 17 Mahalleli)
+-- 20 KULLANICI EKLENMESÝ 
 ---------------------------------------------------------
 INSERT INTO Kullanicilar (Kullanici_AdSoyad, Telefon, Email, Sifre, Rol)
 VALUES 
@@ -197,9 +197,8 @@ BEGIN
     SET @Sayac = @Sayac + 1;
 END;
 
----------------------------------------------------------
 -- 5. ASKIDA YEMEK HAVUZU ÝÞLEMLERÝ 
----------------------------------------------------------
+
 INSERT INTO Askida_Havuz (Bagisci_ID, Bagis_Turu, Bakiye_Miktari, Yemek_ID, Adet, Kalan_Miktar, Durum)
 VALUES 
 (1, 'BAKIYE', 500.00, NULL, 0, 500.00, 'AKTIF'),
@@ -208,4 +207,38 @@ VALUES
 (4, 'URUN', 0, 26, 2, 2.00, 'AKTIF'), -- 2 adet Lahmacun askýya
 (5, 'BAKIYE', 1000.00, NULL, 0, 850.00, 'AKTIF');
 
+SELECT R.RestoranAdi, SUM(S.SiparisTutari) AS ToplamCiro
+FROM Restoranlar R
+JOIN Siparisler S ON R.Restoran_ID = S.Restoran_ID
+GROUP BY R.RestoranAdi
+ORDER BY ToplamCiro DESC;
+
+
+SELECT K.Kullanici_AdSoyad, COUNT(S.Siparis_ID) AS SiparisSayisi
+FROM Kullanicilar K
+JOIN Siparisler S ON K.Kullanici_ID = S.Kullanici_ID
+GROUP BY K.Kullanici_AdSoyad
+ORDER BY SiparisSayisi DESC;
+
+
+SELECT 
+    CASE 
+        WHEN A.Bagisci_ID IS NULL THEN 'Gizli Baðýþçý' 
+        ELSE K.Kullanici_AdSoyad 
+    END AS Bagisci_Adý,
+    CASE 
+        WHEN A.Bagis_Turu = 'BAKIYE' THEN 'Nakit Baðýþ' 
+        ELSE 'Yemek Baðýþý' 
+    END AS Tur,
+    ISNULL(Y.YemekAdi, 'Nakit Para') AS Bagislanan_Urun,
+    -- Ýþte sihirli dokunuþ: Türe göre yanýna birim ekliyoruz
+    CASE 
+        WHEN A.Bagis_Turu = 'BAKIYE' THEN CAST(A.Kalan_Miktar AS VARCHAR) + ' TL'
+        ELSE CAST(CAST(A.Kalan_Miktar AS INT) AS VARCHAR) + ' Adet' -- .00'dan kurtulmak için önce INT'e çevirdik
+    END AS Mevcut_Stok,
+    A.Durum
+FROM Askida_Havuz A
+LEFT JOIN Kullanicilar K ON A.Bagisci_ID = K.Kullanici_ID
+LEFT JOIN Yemekler Y ON A.Yemek_ID = Y.Yemek_ID
+ORDER BY A.Durum ASC, A.Kalan_Miktar DESC;
 
