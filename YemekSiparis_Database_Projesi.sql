@@ -242,3 +242,74 @@ LEFT JOIN Kullanicilar K ON A.Bagisci_ID = K.Kullanici_ID
 LEFT JOIN Yemekler Y ON A.Yemek_ID = Y.Yemek_ID
 ORDER BY A.Durum ASC, A.Kalan_Miktar DESC;
 
+
+
+--4.bölüm viewler
+GO
+CREATE VIEW vw_RestoranHasilatRaporu AS
+SELECT 
+    R.RestoranAdi, 
+    COUNT(S.Siparis_ID) AS ToplamSiparis,
+    SUM(S.SiparisTutari) AS ToplamCiro
+FROM Restoranlar R
+LEFT JOIN Siparisler S ON R.Restoran_ID = S.Restoran_ID
+GROUP BY R.RestoranAdi;
+GO
+--2.view
+GO
+CREATE VIEW vw_AskidaYemekDurumu AS
+SELECT 
+    CASE 
+        WHEN A.Bagisci_ID IS NULL THEN 'Gizli Baðýþçý' 
+        ELSE K.Kullanici_AdSoyad 
+    END AS Bagisci_Adi,
+    CASE 
+        WHEN A.Bagis_Turu = 'BAKIYE' THEN 'Nakit Baðýþ' 
+        ELSE 'Yemek Baðýþý' 
+    END AS Tur,
+    ISNULL(Y.YemekAdi, 'Nakit Para') AS Bagislanan_Urun,
+    CASE 
+        WHEN A.Bagis_Turu = 'BAKIYE' THEN CAST(A.Kalan_Miktar AS VARCHAR) + ' TL'
+        ELSE CAST(CAST(A.Kalan_Miktar AS INT) AS VARCHAR) + ' Adet' 
+    END AS Mevcut_Stok,
+    A.Durum
+FROM Askida_Havuz A
+LEFT JOIN Kullanicilar K ON A.Bagisci_ID = K.Kullanici_ID
+LEFT JOIN Yemekler Y ON A.Yemek_ID = Y.Yemek_ID;
+GO
+SELECT * FROM vw_RestoranHasilatRaporu;
+SELECT * FROM vw_AskidaYemekDurumu;
+
+-- 5. BÖLÜM: TETÝKLEYÝCÝLER
+
+GO
+CREATE TRIGGER trg_HavuzTukendi
+ON Askida_Havuz
+AFTER UPDATE
+AS
+BEGIN
+    -- Eðer havuzdaki bir baðýþýn kalan miktarý 0 veya daha altýna düþerse,
+    -- o baðýþýn durumunu otomatik olarak 'TUKENDI' yap.
+    UPDATE Askida_Havuz
+    SET Durum = 'TUKENDI'
+    WHERE Bagis_ID IN (SELECT Bagis_ID FROM inserted WHERE Kalan_Miktar <= 0)
+      AND Durum = 'AKTIF'; -- Sadece aktif olanlarý güncelle
+END;
+GO
+
+GO
+CREATE TRIGGER trg_KullaniciSilmeGuvencesi
+ON Kullanicilar
+INSTEAD OF DELETE
+AS
+BEGIN
+    -- Birisi DELETE komutu çalýþtýrdýðýnda araya giriyoruz.
+    -- Veriyi fiziksel olarak silmek yerine IsActive (Aktiflik) durumunu 0 yapýyoruz.
+    UPDATE Kullanicilar
+    SET IsActive = 0
+    WHERE Kullanici_ID IN (SELECT Kullanici_ID FROM deleted);
+    
+    PRINT 'Kullanýcý sistemden tamamen silinmedi, hesabý pasife (IsActive = 0) çekildi!';
+END;
+GO
+
