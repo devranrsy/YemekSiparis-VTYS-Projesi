@@ -8,18 +8,21 @@ GO
 
 
 --burda türkçe karakter hatalarý yapmýþstým ve isimlendirme hatalarým vardý o yüzden tablolarý silip düzelttim
+DROP TRIGGER IF EXISTS trg_RestoranCiroGuncelle;
+DROP TRIGGER IF EXISTS trg_EnflasyonKalkani;
 DROP TRIGGER IF EXISTS trg_HavuzTukendi;
 DROP TRIGGER IF EXISTS trg_KullaniciSilmeGuvencesi;
 
 DROP VIEW IF EXISTS vw_RestoranHasilatRaporu;
 DROP VIEW IF EXISTS vw_AskidaYemekDurumu;
 
-DROP TABLE Askida_Havuz;
-DROP TABLE Siparis_Detaylari;
-DROP TABLE Siparisler;
-DROP TABLE Yemekler;
-DROP TABLE Restoranlar;
-DROP TABLE Kullanicilar;
+DROP TABLE IF EXISTS Siparis_Detaylari; -- En alt çocuk
+DROP TABLE IF EXISTS Siparisler;        -- Adreslerin ve Restoranlarýn çocuðu
+DROP TABLE IF EXISTS Askida_Havuz;      -- Yemeklerin çocuðu
+DROP TABLE IF EXISTS Musteri_Adresleri; -- Kullanýcýlarýn çocuðu
+DROP TABLE IF EXISTS Yemekler;          -- Restoranlarýn çocuðu
+DROP TABLE IF EXISTS Restoranlar;       -- Ana tablo
+DROP TABLE IF EXISTS Kullanicilar;      -- Ana tablo
 
 GO
 CREATE TABLE Kullanicilar(
@@ -31,12 +34,21 @@ Sifre NVARCHAR(500) NOT NULL,
 Rol VARCHAR(20) DEFAULT 'MUSTERI' CHECK(Rol IN('MUSTERI','ADMIN','KURYE')),
 IsActive BIT DEFAULT 1);
 
+CREATE TABLE Musteri_Adresleri(
+    Adres_ID INT IDENTITY(1,1) PRIMARY KEY,
+    Kullanici_ID INT NOT NULL,
+    Baslik NVARCHAR(50) DEFAULT 'Ev Adresi',
+    AcikAdres NVARCHAR(255) NOT NULL,
+    IsActive BIT DEFAULT 1,
+    CONSTRAINT FK_Adres_Musteri FOREIGN KEY (Kullanici_ID) REFERENCES Kullanicilar(Kullanici_ID)
+);
 CREATE TABLE Restoranlar(
 Restoran_ID INT IDENTITY(1,1) PRIMARY KEY,
 RestoranAdi NVARCHAR(100) NOT NULL,
 Adres NVARCHAR(255) NOT NULL,
 Puan DECIMAL(3,1) DEFAULT 5.0 CHECK (Puan BETWEEN 1 AND 5),
 Toplam_Bagis_Katkisi DECIMAL(10,2) DEFAULT 0,
+Toplam_Ciro DECIMAL(10,2) DEFAULT 0,
 IsActive BIT NOT NULL DEFAULT 1 
 )
 
@@ -57,6 +69,7 @@ REFERENCES Restoranlar(Restoran_ID)
 CREATE TABLE Siparisler(
 Siparis_ID INT IDENTITY(1,1) PRIMARY KEY,
 Kullanici_ID INT NOT NULL,
+Adres_ID INT NULL, -- ÝÞTE BURASI! (Kurye adresi bilsin diye ekledik. Eski veriler patlamasýn diye NULL býraktýk)
 Restoran_ID INT NOT NULL,
 SiparisTarihi DATETIME DEFAULT GETDATE(),
 SiparisTutari DECIMAL (10,2) NOT NULL CHECK(SiparisTutari>=0),
@@ -64,6 +77,10 @@ Durum NVARCHAR(50) DEFAULT 'Sipariþiniz Hazýrlanýyor',
 
 CONSTRAINT FK_Siparis_HangiMusteri FOREIGN KEY (Kullanici_ID)
 REFERENCES Kullanicilar(Kullanici_ID),
+
+-- YENÝ EKLENEN ÝLÝÞKÝ (Sipariþ -> Adres Baðlantýsý)
+CONSTRAINT FK_Siparis_HangiAdres FOREIGN KEY (Adres_ID)
+REFERENCES Musteri_Adresleri(Adres_ID),
 
 CONSTRAINT FK_Siparis_HangiRestoran FOREIGN KEY(Restoran_ID)
 REFERENCES Restoranlar(Restoran_ID)
@@ -132,6 +149,29 @@ VALUES
 ('Kemal Sunal', '05052220019', 'kemal@mail.com', '123', 'MUSTERI'),
 ('Tarik Akan', '05052220020', 'tarik@mail.com', '123', 'MUSTERI');
 
+INSERT INTO Musteri_Adresleri (Kullanici_ID, Baslik, AcikAdres) VALUES 
+(1, 'Ev Adresi', 'Kemalpaþa Mah. Zambak Sok. No:4, Baðcýlar'),
+(2, 'Ýþ Adresi', 'Güneþli Meydan, Plazalar Kat:3, Baðcýlar'),
+(3, 'Ev Adresi', 'Çýnar Sokak No:12, Merkez Mah. Esenler'),
+(4, 'Yurt Adresi', 'Moda Cad. No:45, Kadýköy'),
+(5, 'Ev Adresi', 'Çarþý Ýçi, Kartal Sk. No:2, Beþiktaþ'),
+(6, 'Ev Adresi', 'Sahil Yolu, No:11, Üsküdar'),
+(7, 'Ýþ Adresi', 'Büyükdere Cad. Kanyon Yaný, Levent'),
+(8, 'Ev Adresi', 'Mecidiyeköy Mah. No:88, Þiþli'),
+(9, 'Ev Adresi', 'Yalý Mah. No:5, Maltepe'),
+(10, 'Kampüs', 'Üniversite Ýçi Yurt, Sarýyer'),
+(11, 'Ev Adresi', 'Ankara Asfaltý Üzeri No:10, Kartal'),
+(12, 'Ev Adresi', 'Marina Karþýsý No:7, Pendik'),
+(13, 'Ýþ Adresi', 'Finans Merkezi No:1, Ataþehir'),
+(14, 'Ev Adresi', 'Cumhuriyet Mah. No:9, Beylikdüzü'),
+(15, 'Ev Adresi', 'Ýncirli Cad. No:33, Bakýrköy'),
+(16, 'Ev Adresi', '58. Bulvar No:21, Zeytinburnu'),
+(17, 'Ýþ Adresi', 'Plazalar Bölgesi No:4, Maslak'),
+(18, 'Ev Adresi', 'Vatan Cad. No:55, Fatih'),
+(19, 'Ev Adresi', 'Atýþalaný No:13, Esenler'),
+(20, 'Ev Adresi', 'Barýþ Mah. Vefa Sok. No:3, Avcýlar'),
+(21, 'Ýþ Adresi', 'Tekstilkent A Blok No:99, Esenler');
+
 
 INSERT INTO Restoranlar (RestoranAdi, Adres, Puan)
 VALUES 
@@ -167,10 +207,11 @@ INSERT INTO Yemekler (Restoran_ID, YemekAdi, Fiyat) VALUES
 (5, 'Pilav', 60), (5, 'Kavurma', 250), (5, 'Musakka', 160), (5, 'Cacýk', 50), (5, 'Kemalpaþa Tatlýsý', 70);
 
 
---100 SÝPARÝÞ ve DETAYLARININ OLUÞTURULMASI 
+-- 100 SÝPARÝÞ ve DETAYLARININ OLUÞTURULMASI 
 
 DECLARE @Sayac INT = 1;
 DECLARE @RastgeleMusteri INT;
+DECLARE @RastgeleAdres INT; -- YENÝ EKLENDÝ: Kurye için adres tutucu
 DECLARE @RastgeleRestoran INT;
 DECLARE @RastgeleYemek INT;
 DECLARE @RastgeleAdet INT;
@@ -179,13 +220,18 @@ DECLARE @YeniSiparisID INT;
 
 WHILE @Sayac <= 100
 BEGIN
-    -- 1 ile 20 arasý rastgele müþteri ve 1 ile 5 arasý rastgele restoran seçimi
+    -- 1 ile 21 arasý rastgele müþteri ve 1 ile 5 arasý rastgele restoran seçimi
     SET @RastgeleMusteri = (ABS(CHECKSUM(NEWID())) % 21) + 1;
     SET @RastgeleRestoran = (ABS(CHECKSUM(NEWID())) % 5) + 1;
 
-    -- Ana Sipariþi Ekle (Tutar þimdilik 0, detaylar eklenince hesaplanmalý ama test için rastgele atýyoruz)
-    INSERT INTO Siparisler (Kullanici_ID, Restoran_ID, SiparisTutari, Durum)
-    VALUES (@RastgeleMusteri, @RastgeleRestoran, 0, 'Teslim Edildi');
+    -- YENÝ EKLENDÝ: Seçilen müþterinin adresini Adresler tablosundan bul ve al
+    SELECT TOP 1 @RastgeleAdres = Adres_ID 
+    FROM Musteri_Adresleri 
+    WHERE Kullanici_ID = @RastgeleMusteri;
+
+    -- Ana Sipariþi Ekle (Artýk Adres_ID bilgisiyle beraber ekleniyor!)
+    INSERT INTO Siparisler (Kullanici_ID, Adres_ID, Restoran_ID, SiparisTutari, Durum)
+    VALUES (@RastgeleMusteri, @RastgeleAdres, @RastgeleRestoran, 0, 'Teslim Edildi');
     
     SET @YeniSiparisID = SCOPE_IDENTITY(); -- Eklenen son sipariþin ID'sini al
 
@@ -207,6 +253,10 @@ BEGIN
 
     SET @Sayac = @Sayac + 1;
 END;
+
+UPDATE R
+SET R.Toplam_Ciro = ISNULL((SELECT SUM(S.SiparisTutari) FROM Siparisler S WHERE S.Restoran_ID = R.Restoran_ID AND S.Durum = 'Teslim Edildi'), 0)
+FROM Restoranlar R;
 
 -- 5. ASKIDA YEMEK HAVUZU ÝÞLEMLERÝ 
 
@@ -263,10 +313,11 @@ CREATE VIEW vw_RestoranHasilatRaporu AS
 SELECT 
     R.RestoranAdi, 
     COUNT(S.Siparis_ID) AS ToplamSiparis,
-    SUM(S.SiparisTutari) AS ToplamCiro
+    SUM(S.SiparisTutari) AS DinamikHesaplananCiro, -- Sipariþlerden anlýk hesaplanan
+    R.Toplam_Ciro AS TablodakiKasaCirosu -- Restoranýn ana tablosunda tetikleyiciyle biriken para!
 FROM Restoranlar R
 LEFT JOIN Siparisler S ON R.Restoran_ID = S.Restoran_ID
-GROUP BY R.RestoranAdi;
+GROUP BY R.RestoranAdi, R.Toplam_Ciro;
 GO
 --2.view
 GO
@@ -316,16 +367,66 @@ ON Kullanicilar
 INSTEAD OF DELETE
 AS
 BEGIN
+    -- YENÝ EKLENDÝ: Müþteri silindiðinde (pasife çekildiðinde), önce o müþteriye ait tüm adresleri pasife çekiyoruz!
+    UPDATE Musteri_Adresleri
+    SET IsActive = 0
+    WHERE Kullanici_ID IN (SELECT Kullanici_ID FROM deleted);
+
     -- Birisi DELETE komutu çalýþtýrdýðýnda araya giriyoruz.
     -- Veriyi fiziksel olarak silmek yerine IsActive (Aktiflik) durumunu 0 yapýyoruz.
     UPDATE Kullanicilar
     SET IsActive = 0
     WHERE Kullanici_ID IN (SELECT Kullanici_ID FROM deleted);
     
-    PRINT 'Kullanýcý sistemden tamamen silinmedi, hesabý pasife (IsActive = 0) çekildi!';
+    PRINT 'Kullanýcý ve ona ait tüm adresler sistemden tamamen silinmedi, hesabý pasife (IsActive = 0) çekildi!';
 END;
 GO
 
+GO
+CREATE TRIGGER trg_EnflasyonKalkani
+ON Siparis_Detaylari
+INSTEAD OF INSERT
+AS
+BEGIN
+    -- Eklenecek sipariþ detaylarýný, o anki yemek fiyatýný Yemekler tablosundan otomatik çekerek ekle!
+    INSERT INTO Siparis_Detaylari (Siparis_ID, Yemek_ID, Adet, BirimFiyat)
+    SELECT 
+        i.Siparis_ID, 
+        i.Yemek_ID, 
+        i.Adet, 
+        Y.Fiyat -- Bakkal çýraðý raftaki güncel fiyatý deftere kalýcý olarak mühürlüyor!
+    FROM inserted i
+    JOIN Yemekler Y ON i.Yemek_ID = Y.Yemek_ID;
+
+    -- Ana sipariþ tablosundaki SiparisTutari'ný da yeni eklenen bu detaylara göre otomatik güncelle!
+    UPDATE S
+    SET S.SiparisTutari = S.SiparisTutari + (i.Adet * Y.Fiyat)
+    FROM Siparisler S
+    JOIN inserted i ON S.Siparis_ID = i.Siparis_ID
+    JOIN Yemekler Y ON i.Yemek_ID = Y.Yemek_ID;
+END;
+GO
+
+GO
+CREATE TRIGGER trg_RestoranCiroGuncelle
+ON Siparisler
+AFTER UPDATE
+AS
+BEGIN
+    -- Eðer bir sipariþin durumu 'Teslim Edildi' olarak güncellenirse
+    -- O restoranýn Toplam_Ciro deðerini otomatik olarak artýr!
+    IF UPDATE(Durum)
+    BEGIN
+        UPDATE R
+        SET R.Toplam_Ciro = R.Toplam_Ciro + i.SiparisTutari
+        FROM Restoranlar R
+        JOIN inserted i ON R.Restoran_ID = i.Restoran_ID
+        JOIN deleted d ON i.Siparis_ID = d.Siparis_ID
+        WHERE i.Durum = 'Teslim Edildi' AND d.Durum <> 'Teslim Edildi'; 
+        -- Sadece yeni teslim edilenleri ekle, tekrar tekrar ciro yazmasýn!
+    END;
+END;
+GO
 
 ---------------------------------------------------------
 --ÝLERÝ DÜZEY SORGULAR (DQL & ANALÝTÝK)
@@ -334,15 +435,16 @@ GO
 SELECT 
     S.Siparis_ID, 
     K.Kullanici_AdSoyad AS Musteri, 
+    A.AcikAdres AS Teslimat_Adresi, -- EFSANE DETAY BURAYA EKLENDÝ!
     R.RestoranAdi, 
     S.SiparisTutari, 
     S.SiparisTarihi,
     S.Durum
 FROM Siparisler S
 INNER JOIN Kullanicilar K ON S.Kullanici_ID = K.Kullanici_ID
+INNER JOIN Musteri_Adresleri A ON S.Adres_ID = A.Adres_ID -- ADRES TABLOSU DA SÝSTEME DAHÝL EDÝLDÝ
 INNER JOIN Restoranlar R ON S.Restoran_ID = R.Restoran_ID
 ORDER BY S.SiparisTarihi DESC;
-
 
 
 -- Senaryo: Toplamda 500 TL'den fazla ciro yapan ve baþarýlý satýþlarý olan restoranlar
